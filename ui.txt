@@ -1,0 +1,17 @@
+/*
+  cout << "Would you like to use your own key.txt file? Type Y or N" << endl;
+  cin >> choice;
+  if(choice != "y" && choice != "Y")
+  {
+    cout << "Key generated and written to key.txt file" << endl;
+    Generate_Key(); // Will geenerate key and place in key.txt file
+  }
+  else
+  {
+    cout << "Make sure ket.txt file is in same directory and contains key in hex" << endl;
+    cout << "Press c then ENTER to continue" << endl;
+    cin >> choice;
+  }
+*/
+
+

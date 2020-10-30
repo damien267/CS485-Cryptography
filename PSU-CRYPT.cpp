@@ -46,7 +46,7 @@ char key_in[64];
 // To hold the one element that gets written over on the shift
 char tmp;
 
-//To only load from key.txt initially, then use updated global val
+// Count of '0' used to load from key.txt initially, then use updated global val
 static unsigned int f_count = 0;
 
 
@@ -58,10 +58,10 @@ string F(string r0, string r1, int round_num)
   string f0;
   string f1;
 
-//  t0 = G(r0, round_num);
-//  t1 = G(r1, round_num);
-//  cout << "t0: " << t0 << endl;
-//  cout << "t1: " << t1 << endl;
+  cout << "t0: " << t0 << endl;
+  cout << "t1: " << t1 << endl;
+  cout << "r0: " << r0 << endl;
+  cout << "r1: " << r1 << endl;
 
 
   string result(t0 + t1);
@@ -79,17 +79,20 @@ string G(string w, int round_num)
     g2[i] = w[i+8];
   }
   cout << "In G(): " << endl;
-  cout << "w in: " << w << endl;
-
-  cout << "g1:     " << bin2hex(g1) << endl;
-  cout << "g2:     " << bin2hex(g2) << endl;
+  cout << "w in - binary: " << w << endl;
+  cout << "g1:     " << g1 << endl;
+  cout << "g2:     " << g2 << endl;
+  cout << "g1 in hex:     " << bin2hex(g1) << endl;
+  cout << "g2 in hex:     " << bin2hex(g2) << endl << endl;
 
 
   string tmp_k = K(4* round_num);
-  cout << "K(4* rnd): " << bin2hex(tmp_k) << endl;
+  cout << "K(4* rnd) in hex: " << bin2hex(tmp_k) << endl;
+  cout << "K(4* rnd): " << tmp_k << endl;
 
   string tmp_k2 = K((4* round_num) + 1);
-  cout << "K(4* rnd+1): " << bin2hex(tmp_k2) << endl;
+  cout << "K(4* rnd+1) in hex: " << bin2hex(tmp_k2) << endl;
+  cout << "K(4* rnd+1): " << tmp_k2 << endl << endl;
 
 
   string temp_x = xOR(g2, tmp_k, 8);
@@ -117,7 +120,8 @@ string G(string w, int round_num)
 
 
   string g5g6 = "HELLO";
-//  cout << "get_ftable_hex 7a: " << get_ftable_hex("7a") << endl;
+  cout << "get_ftable_hex 7a: " << get_ftable_hex("7a") << endl;
+  cout << "get_ftable_hex (temp_x): " << get_ftable_hex(bin2hex(temp_x)) << endl;
   unsigned int lookup = 0;
 
   return g5g6;
@@ -190,7 +194,7 @@ void encrypt()
 //  string key_byte1 = K(n+1);
 //  cout << "K2 1: " <<  key_byte1 << endl;
 //---------------------------------------------------------------
-  for(int i = 0; i < 16; i++) // START 16 rounds
+  for(int i = 0; i < 1; i++) // START 16 rounds <-- ********SET ROUNDS HERE ********************************
   {
 
     if(round_num == 0)
@@ -348,21 +352,17 @@ string K(unsigned int x)
   return result; // Returns 8 bit subkey
 }
 
-//Generates key and saves to file key.txt
 string Generate_Key()
 {
   srand(time(NULL));
   char key_stream[9] = {'\0'};
   char char_set[36] = {'Q','W','E','R','T','Y','1','U','I','O','P','2','A','S','D','0','F','G','3','H','J','K','L','4','5','6','Z','X','C','7','V','B','N','8','M','9'};
 
-  //Each of the 16 chars for the key are chosen randomly, individually
+  //Each of the 8 chars for the key are chosen individually and randomly
   for(int i = 0; i < 8; i++)
   {
     int r_select = rand() % 36;
     key_stream[i] = char_set[r_select];
-
-// For testing: shows keystream and charset match, and the random number used
-//    cout << i << ". " << "key stream = " << key_stream[i] << "  charset = " << char_set[r_select] << "  r-selct = " << r_select << '\n';
   }
 
   //Convert the char array to a string so it can be returned
@@ -388,8 +388,6 @@ string Generate_Key()
   return result;
 }
 
-
-
 string xOR(string k, string w, int arrsize)
 {
   char r[arrsize+1] = {" "};
@@ -403,21 +401,18 @@ string xOR(string k, string w, int arrsize)
     {
       r[i] = '1';
     }
-//    cout << "r[" << i << "] = " << r[i] << endl;
-//    cout << "r[64] = " << r[64] << endl;
   }
   string result(r);
-//  cout << "###############" << result << endl;
   return result;
 }
 
-///////////////////////////////////////////////////////////////////////////////////
-//Takes plaintext in ASCII from plaintext.txt and a key in hex
-//from key.txt and returns XORD [128]
+/*******************************************************************
+ * Takes plaintext in ASCII from plaintext.txt and a key in hex
+ * from key.txt and returns XORD [128]
+*******************************************************************/
+
 string Whiten(string ptblock, string key)
 {
-  string pbin = ptblock;
-  string kbin = key;
   char k[64] = {" "};
   char w[64] = {" "};
   strcpy(k, key.c_str());
@@ -425,6 +420,59 @@ string Whiten(string ptblock, string key)
   string result(xOR(key, ptblock, 65));
   return result;
 }
+
+/*******************************************************************
+ * f_table functions
+*******************************************************************/
+
+string get_fTable()
+{
+  string f_table;
+  char new_FT[10000];
+  ifstream inFile;
+  inFile.open("f_table.txt");
+  inFile >> f_table;
+  int flen = f_table.length();
+  int t = 0;
+
+  for(int i = 0; i < flen; i++)
+  {
+    if(f_table[i] == ' ' || f_table[i] == ',')
+    {
+      i++;
+    }
+    if(f_table[i] == '0' && f_table[i+1] == 'x')
+    {
+      i += 2;
+    }
+    new_FT[t] = f_table[i];
+    t++;
+  }
+  inFile.close();
+  return new_FT;
+}
+
+string get_ftable_hex(string hex_in)
+{
+
+  unsigned int irow = hex2int(hex_in[0]);
+  unsigned int icolumn = hex2int(hex_in[1]);
+  char temp[3];
+  string fTable = get_fTable();
+  temp[0] = fTable[(irow*32) + (2* icolumn)];
+  temp[1] = fTable[((irow*32) + (2* icolumn)) + 1];
+  string result(temp);
+  return result;
+}
+
+
+/******************************************************
+ * Conversion tables below:
+ * hex2char
+ * hex2bin
+ * bin2hex
+ * hex2int
+*******************************************************/
 
 string hex2char(string in)
 {
@@ -443,9 +491,7 @@ string hex2bin(string in)
 {
   int i = 0;
   int h = 0;
-  char binArray[6500]; // <--- CHANGE THIS BACK -----------------------
-
-//  cout << '\n' << "string in: " << in << endl;
+  char binArray[6500];
 
   while(in[h])
   {
@@ -455,7 +501,6 @@ string hex2bin(string in)
       binArray[i+1] = '0';
       binArray[i+2] = '0';
       binArray[i+3] = '0';
-//      cout << binArray[i] << binArray[i+1] << binArray[i+2] << binArray[i+3];
     }
     else if(in[h] == '1')
     {
@@ -463,7 +508,6 @@ string hex2bin(string in)
       binArray[i+1] = '0';
       binArray[i+2] = '0';
       binArray[i+3] = '1';
-//      cout << binArray[i] << binArray[i+1] << binArray[i+2] << binArray[i+3];
     }
     else if(in[h] == '2')
     {
@@ -471,7 +515,6 @@ string hex2bin(string in)
       binArray[i+1] = '0';
       binArray[i+2] = '1';
       binArray[i+3] = '0';
-//      cout << binArray[i] << binArray[i+1] << binArray[i+2] << binArray[i+3];
     }
     else if(in[h] == '3')
     {
@@ -479,7 +522,6 @@ string hex2bin(string in)
       binArray[i+1] = '0';
       binArray[i+2] = '1';
       binArray[i+3] = '1';
-//      cout << binArray[i] << binArray[i+1] << binArray[i+2] << binArray[i+3];
     }
     else if(in[h] == '4')
     {
@@ -487,7 +529,6 @@ string hex2bin(string in)
       binArray[i+1] = '1';
       binArray[i+2] = '0';
       binArray[i+3] = '0';
-//      cout << binArray[i] << binArray[i+1] << binArray[i+2] << binArray[i+3];
     }
     else if(in[h] == '5')
     {
@@ -495,7 +536,6 @@ string hex2bin(string in)
       binArray[i+1] = '1';
       binArray[i+2] = '0';
       binArray[i+3] = '1';
-//      cout << binArray[i] << binArray[i+1] << binArray[i+2] << binArray[i+3];
     }
     else if(in[h] == '6')
     {
@@ -503,7 +543,6 @@ string hex2bin(string in)
       binArray[i+1] = '1';
       binArray[i+2] = '1';
       binArray[i+3] = '0';
-//      cout << binArray[i] << binArray[i+1] << binArray[i+2] << binArray[i+3];
     }
     else if(in[h] == '7')
     {
@@ -511,7 +550,6 @@ string hex2bin(string in)
       binArray[i+1] = '1';
       binArray[i+2] = '1';
       binArray[i+3] = '1';
-//      cout << binArray[i] << binArray[i+1] << binArray[i+2] << binArray[i+3];
     }
     else if(in[h] == '8')
     {
@@ -519,7 +557,6 @@ string hex2bin(string in)
       binArray[i+1] = '0';
       binArray[i+2] = '0';
       binArray[i+3] = '0';
-//      cout << binArray[i] << binArray[i+1] << binArray[i+2] << binArray[i+3];
     }
     else if(in[h] == '9')
     {
@@ -527,7 +564,6 @@ string hex2bin(string in)
       binArray[i+1] = '0';
       binArray[i+2] = '0';
       binArray[i+3] = '1';
-//      cout << binArray[i] << binArray[i+1] << binArray[i+2] << binArray[i+3];
     }
     else if(in[h] == 'a' || in[h] == 'A') //10
     {
@@ -535,7 +571,6 @@ string hex2bin(string in)
       binArray[i+1] = '0';
       binArray[i+2] = '1';
       binArray[i+3] = '0';
-//      cout << binArray[i] << binArray[i+1] << binArray[i+2] << binArray[i+3];
     }
     else if(in[h] == 'b' || in[h] == 'B') //11
     {
@@ -543,7 +578,6 @@ string hex2bin(string in)
       binArray[i+1] = '0';
       binArray[i+2] = '1';
       binArray[i+3] = '1';
-//      cout << binArray[i] << binArray[i+1] << binArray[i+2] << binArray[i+3];
     }
     else if(in[h] == 'c' || in[h] == 'C') //12
     {
@@ -551,7 +585,6 @@ string hex2bin(string in)
       binArray[i+1] = '1';
       binArray[i+2] = '0';
       binArray[i+3] = '0';
-//      cout << binArray[i] << binArray[i+1] << binArray[i+2] << binArray[i+3];
     }
     else if(in[h] == 'd' || in[h] == 'D') //13
     {
@@ -559,7 +592,6 @@ string hex2bin(string in)
       binArray[i+1] = '1';
       binArray[i+2] = '0';
       binArray[i+3] = '1';
-//      cout << binArray[i] << binArray[i+1] << binArray[i+2] << binArray[i+3];
     }
     else if(in[h] == 'e' || in[h] == 'E') //14
     {
@@ -567,7 +599,6 @@ string hex2bin(string in)
       binArray[i+1] = '1';
       binArray[i+2] = '1';
       binArray[i+3] = '0';
-//      cout << binArray[i] << binArray[i+1] << binArray[i+2] << binArray[i+3];
     }
     else if(in[h] == 'f' || in[h] == 'F') //15
     {
@@ -575,18 +606,10 @@ string hex2bin(string in)
       binArray[i+1] = '1';
       binArray[i+2] = '1';
       binArray[i+3] = '1';
-//      cout << binArray[i] << binArray[i+1] << binArray[i+2] << binArray[i+3];
     }
     h++;
     i += 4;
   }
-/*
-  cout << '\n' << "Contents of binArray in Function: " << '\n';
-  for(int j = 0; j < 128; j++)
-  {
-    cout << binArray[j];
-  }
-*/
   string binresult(binArray);
   return binresult;
 }
@@ -668,34 +691,6 @@ string bin2hex(string in)
   return result;
 }
 
-
-string get_fTable()
-{
-  string f_table;
-  char new_FT[10000];
-  ifstream inFile;
-  inFile.open("f_table.txt");
-  inFile >> f_table;
-  int flen = f_table.length();
-  int t = 0;
-
-  for(int i = 0; i < flen; i++)
-  {
-    if(f_table[i] == ' ' || f_table[i] == ',')
-    {
-      i++;
-    }
-    if(f_table[i] == '0' && f_table[i+1] == 'x')
-    {
-      i += 2;
-    }
-    new_FT[t] = f_table[i];
-    t++;
-  }
-  inFile.close();
-  return new_FT;
-}
-
 unsigned int hex2int(char hex_in)
 {
   unsigned int num_out = 0;
@@ -717,18 +712,5 @@ unsigned int hex2int(char hex_in)
   if(hex_in == 'f' || hex_in == 'F') num_out = 15;
 
   return num_out;
-}
-
-string get_ftable_hex(string hex_in)
-{
-
-  unsigned int irow = hex2int(hex_in[0]);
-  unsigned int icolumn = hex2int(hex_in[1]);
-  char temp[3];
-  string fTable = get_fTable();
-  temp[0] = fTable[(irow*32) + (2* icolumn)];
-  temp[1] = fTable[((irow*32) + (2* icolumn)) + 1];
-  string result(temp);
-  return result;
 }
 

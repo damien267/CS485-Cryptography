@@ -1,2 +1,2 @@
 # CS485-Cryptography
-Plaintext encryption program - UNFINISHED
+Plaintext block encryption program using key whitening and Feistel cipher  - UNFINISHED

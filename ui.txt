@@ -1,3 +1,7 @@
+/* Key when generated will be placed in key.txt file
+ *
+*/
+
 /*
   cout << "Would you like to use your own key.txt file? Type Y or N" << endl;
   cin >> choice;
@@ -8,7 +12,7 @@
   }
   else
   {
-    cout << "Make sure ket.txt file is in same directory and contains key in hex" << endl;
+    cout << "Make sure key.txt file is in same directory and contains key in hex" << endl;
     cout << "Press c then ENTER to continue" << endl;
     cin >> choice;
   }

@@ -38,11 +38,17 @@ string get_fTable ();
 string K(unsigned int x);  // K(x)
 string get_ftable_hex(string hex_in);
 unsigned int hex2int(char hex_in);
-
-char key_in[64]; //So that the key can be incremented to k'
-char tmp; // To hold the one element that gets written over on the shift
-static unsigned int f_count = 0; //To only load from key.txt initially, then use updated global val
 int round_num = 0;
+
+//So that the key can be incremented to k'
+char key_in[64];
+
+// To hold the one element that gets written over on the shift
+char tmp;
+
+//To only load from key.txt initially, then use updated global val
+static unsigned int f_count = 0;
+
 
 
 string F(string r0, string r1, int round_num)
@@ -129,14 +135,14 @@ void encrypt()
   string ciphertext;
 
 
-  ifstream inFile; // plaintext.txt
+  ifstream plaintext_txt; // plaintext.txt
   ifstream inFile2; // key.txt
   ofstream outFile; // cyphertext.txt
-  inFile.open("plaintext.txt");
+  plaintext_txt.open("plaintext.txt");
   inFile2.open("key.txt");
   outFile.open("cyphertext.txt"); //Will be cyphertext.txt, an encrypted file
 
-  inFile >> str; //contents of plaintext.txt in ASCII
+  plaintext_txt >> str; //contents of plaintext.txt in ASCII
   inFile2 >> key_fromfile; // contents of key.txt
 ////
   int pTxtLng =  0;
@@ -232,7 +238,7 @@ void encrypt()
     round_num++;
   }
 //  outFile << whitened; //
-  inFile.close();
+  plaintext_txt.close();
   inFile2.close();
   outFile.close();
 
@@ -279,7 +285,7 @@ string K(unsigned int x)
   key_in[63] = tmp;
 
 
-  //Select the correct bytes depending dependin on the x mod 8 input
+  //Select the correct bytes depending on the x mod 8 input
   if(new_x == 0)
   {
    for(int a = 0; a < 8; a++)
@@ -365,19 +371,19 @@ string Generate_Key()
   cout << endl;
   cout << "****KEY in ASCII is: " << result << endl;
 
-  ifstream inFile;
-  ofstream outFile;
-  inFile.open("key.txt");
-  outFile.open("key.txt");
+  ifstream key_txt_in;
+  ofstream key_txt_out;
+  key_txt_in.open("key.txt");
+  key_txt_out.open("key.txt");
 
   char2hex(result, result);
   cout << "****KEY in HEX is: " << result << '\n';
-  outFile << result;
+  key_txt_out << result;
 //  cout << "KEY BACK INTO ascii: " << hex2char(result) << endl;
 
   string ddd = hex2char(result);
-  inFile.close();
-  outFile.close();
+  key_txt_in.close();
+  key_txt_out.close();
 
   return result;
 }

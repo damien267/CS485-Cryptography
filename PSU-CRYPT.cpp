@@ -1,6 +1,8 @@
-//Damien Jones
-//CS 485 Project 1
-
+/*******************************************************************
+ * Damien Jones
+ * CS 485 Project 1
+ * Block cipher system utilizing key whitening and Feistel cipher
+*******************************************************************/
 
 #include <iostream>
 #include <fstream>
@@ -11,7 +13,6 @@
 #include <vector>
 
 using namespace std;
-
 
 //This function was borrowed, but I cant remember where
 void char2hex(const string in, string& out, bool capital = false)
@@ -33,23 +34,20 @@ string Generate_Key();
 string G(string w, int round_num);
 string Whiten(string ptblock, string key);
 string xOR(string k, string w, int arrsize);
-string get_fTable ();
-//void encrypt();
+string import_fTable ();
 string K(unsigned int x);  // K(x)
 string get_ftable_hex(string hex_in);
+void encrypt();
 unsigned int hex2int(char hex_in);
 int round_num = 0;
-
-//So that the key can be incremented to k'
-char key_in[64];
-
-// To hold the one element that gets written over on the shift
-char tmp;
-
-// Count of '0' used to load from key.txt initially, then use updated global val
-static unsigned int f_count = 0;
+char key_in[64]; //So that the key can be incremented to k'
+char tmp; // To hold the one element that gets written over on the shift
+static unsigned int f_count = 0; // Count of '0' used to load from key.txt initially, then use updated global val
 
 
+/*******************************************************************
+ * F function
+*******************************************************************/
 
 string F(string r0, string r1, int round_num)
 {
@@ -67,6 +65,10 @@ string F(string r0, string r1, int round_num)
   string result(t0 + t1);
   return result;
 }
+
+/*******************************************************************
+ * G function
+*******************************************************************/
 
 string G(string w, int round_num)
 {
@@ -116,17 +118,27 @@ string G(string w, int round_num)
 
   cout << "ftable input in hex: " << bin2hex(temp_x) << endl;
 
+/*******************************************************************
+ * get_ftable_hex isnt returning a value
 
+*******************************************************************/
 
-
-  string g5g6 = "HELLO";
-  cout << "get_ftable_hex 7a: " << get_ftable_hex("7a") << endl;
-  cout << "get_ftable_hex (temp_x): " << get_ftable_hex(bin2hex(temp_x)) << endl;
+  //string test_ftable_lookup = bin2hex(temp_x);
+  //string test_ftable_lookup2 = "7a";
+  //cout << "get_ftable_hex 7a: " << get_ftable_hex("7a") << endl;
+  //cout << "get_ftable_hex (temp_x): " << get_ftable_hex(test_ftable_lookup2) << endl;
   unsigned int lookup = 0;
 
+  string g5g6 = "HELLO";
   return g5g6;
 }
 
+
+/*******************************************************************
+ * Encrypt()
+
+ * Needs Work
+*******************************************************************/
 
 void encrypt()
 {
@@ -172,7 +184,6 @@ void encrypt()
   char w1[17] = { };
   char w2[17] = { };
   char w3[17] = { };
-//  char r[64];
   char r0[17] = { };
   char r1[17] = { };
   char r2[17] = { };
@@ -181,14 +192,11 @@ void encrypt()
   char k1[17] = { };
   char k2[17] = { };
   char k3[17] = { };
-
-
+  unsigned int n = 0;
+  n = round_num;
+//-------------------------------------------------------------
 //str is input string in hex
 //key is input in hex
-
-  unsigned int n = 0;
-//-------------------------------------------------------------
-  n = round_num;
 //  string key_byte = K(n);
 //  cout << endl << "K2 0: " <<  key_byte << endl;
 //  string key_byte1 = K(n+1);
@@ -224,18 +232,7 @@ void encrypt()
   cout << endl << "Spacer----------------------" << endl;
 
   F(r0, r1, round_num);
-
-
-
-
-
-
-
-
 //  cout << endl << "K" << i << " " << round_num << ": " <<  key_byte << endl;
-
-//*&^*&^*^*^*^*^(^%&^%*%%*%%(%%(%^%$^#$%^&^%#&$%^&(*(^*(%$^&*^%#@$@$^&%*&%&*$^&$*
-
 //    cout << "str after round " << i << ": " << str << endl;
 //    str = xOR(str, key_fromfile);
 //    cout << "str after round 0: " << str << endl;
@@ -248,7 +245,11 @@ void encrypt()
 
 }
 
-////////////////////////////////-MAIN-////////////////////////////////////////
+
+/*******************************************************************
+ * Main()
+*******************************************************************/
+
 int main()
 {
 
@@ -257,8 +258,11 @@ int main()
 cout << endl;
 return 0;
 }
-//////////////////////////////////////////////////////////////////////////
 
+/*******************************************************************
+ * K function:
+ *
+*******************************************************************/
 
 string K(unsigned int x)
 {
@@ -271,7 +275,7 @@ string K(unsigned int x)
     inFile.open("key.txt");
     string kHex = "";
     inFile >> kHex;
-    string kbin = hex2bin(kHex);
+    string kbin = hex2bin(kHex); // kbin is key from key.txt in binary
 
     for(int i = 0; i < 64; i++)  //transfer kbin to key_in
     {
@@ -352,6 +356,12 @@ string K(unsigned int x)
   return result; // Returns 8 bit subkey
 }
 
+
+/*******************************************************************
+ * Generate key:
+ *
+*******************************************************************/
+
 string Generate_Key()
 {
   srand(time(NULL));
@@ -379,14 +389,17 @@ string Generate_Key()
   char2hex(result, result);
   cout << "****KEY in HEX is: " << result << '\n';
   key_txt_out << result;
-//  cout << "KEY BACK INTO ascii: " << hex2char(result) << endl;
 
-  string ddd = hex2char(result);
   key_txt_in.close();
   key_txt_out.close();
 
   return result;
 }
+
+
+/*******************************************************************
+ * XOR
+*******************************************************************/
 
 string xOR(string k, string w, int arrsize)
 {
@@ -422,10 +435,11 @@ string Whiten(string ptblock, string key)
 }
 
 /*******************************************************************
- * f_table functions
+ * f_table functions:
+ * import_fTable removes spaces, commas, and '0x' in "f_table.txt"
 *******************************************************************/
 
-string get_fTable()
+string import_fTable()
 {
   string f_table;
   char new_FT[10000];
@@ -457,11 +471,21 @@ string get_ftable_hex(string hex_in)
 
   unsigned int irow = hex2int(hex_in[0]);
   unsigned int icolumn = hex2int(hex_in[1]);
-  char temp[3];
-  string fTable = get_fTable();
+  char temp[2];
+  string fTable = import_fTable();
   temp[0] = fTable[(irow*32) + (2* icolumn)];
   temp[1] = fTable[((irow*32) + (2* icolumn)) + 1];
   string result(temp);
+
+/* COUTS <----------------------------*/
+  cout << "irow: " << irow << endl;
+  cout << "icolumn: " << icolumn << endl;
+  //cout << "fTable" << fTable << endl;
+  cout << "temp[0]: " << temp[0] << endl;
+  cout << "temp[1]: " << temp[1] << endl;
+  cout << "result: " << result << endl;
+
+
   return result;
 }
 

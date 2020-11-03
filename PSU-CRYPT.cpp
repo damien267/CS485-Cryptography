@@ -111,6 +111,9 @@ string G(string w, int round_num)
  * XOR bytes with key
  * PROBLEM
  * This part I cant remember the structure for the algorithm
+
+** SOLUTION: Generate all keys in the begining and store. Just
+** run the same calls on a seperate for loop (i < 16)
 *******************************************************************/
 
   string temp_x = xOR(g2, tmp_k, 8);
@@ -244,14 +247,14 @@ void encrypt()
       }
     }
 
-    cout << "Key out put: " << K(i) << endl;
+  cout << "Spacer----------------------" << endl;
+  cout << endl << endl << "Key out put: " << K(i) << endl;
 
 
 //  cout << "going into F " << endl;
 //  cout << "l0: " << l0 << endl;
 //  cout << "l1: " << l1 << endl;
 //  cout << "rnd:" << round_num << endl;
-  cout << endl << "Spacer----------------------" << endl;
 
 /*******************************************************************
  * F called here

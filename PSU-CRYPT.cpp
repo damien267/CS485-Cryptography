@@ -15,7 +15,7 @@
 using namespace std;
 
 //This function was borrowed, but I cant remember where
-void char2hex(const string in, string& out, bool capital = false)
+void char0hex(const string in, string& out, bool capital = false)
 {
   out.resize(in.size() *2);
   const size_t a = capital ? 'A' - 1 : 'a' - 1;
@@ -47,19 +47,20 @@ static unsigned int f_count = 0; // Count of '0' used to load from key.txt initi
 
 /*******************************************************************
  * F function
+ * Gets the left half of the 16 byte block
 *******************************************************************/
 
-string F(string r0, string r1, int round_num)
+string F(string l0, string l1, int round_num)
 {
-  string t0(G(r0, round_num));
-  string t1(G(r1, round_num));
+  string t0(G(l0, round_num));
+  string t1(G(l1, round_num));
   string f0;
   string f1;
 
   cout << "t0: " << t0 << endl;
   cout << "t1: " << t1 << endl;
-  cout << "r0: " << r0 << endl;
-  cout << "r1: " << r1 << endl;
+  cout << "l0: " << l0 << endl;
+  cout << "l1: " << l1 << endl;
 
 
   string result(t0 + t1);
@@ -68,12 +69,17 @@ string F(string r0, string r1, int round_num)
 
 /*******************************************************************
  * G function
+
+ * Takes 2 bytes as input
+ * Loads each byte into g1 and g2 - size of 9 for /n
+
+ * So g1 is first byte of l0 or l1 (2 bytes)
 *******************************************************************/
 
 string G(string w, int round_num)
 {
-  char g1[9];
-  char g2[9];
+  char g1[9]; // Byte 1
+  char g2[9]; // Byte 2
 
   for(int i = 0; i < 8; i++)
   {
@@ -81,12 +87,17 @@ string G(string w, int round_num)
     g2[i] = w[i+8];
   }
   cout << "In G(): " << endl;
-  cout << "w in - binary: " << w << endl;
-  cout << "g1:     " << g1 << endl;
-  cout << "g2:     " << g2 << endl;
-  cout << "g1 in hex:     " << bin2hex(g1) << endl;
-  cout << "g2 in hex:     " << bin2hex(g2) << endl << endl;
+  cout << "w in- 2 bytes of binary, l0 or l1: " << w << endl;
+  cout << "g1- Byte 1:     " << g1 << endl;
+  cout << "g2 - Byte 2:     " << g2 << endl;
+  cout << "g1- Byte 1 in hex:     " << bin2hex(g1) << endl;
+  cout << "g2- Byte 2 in hex:     " << bin2hex(g2) << endl << endl;
 
+
+/*******************************************************************
+ * K function used here
+ * Assign keys depending on round number
+*******************************************************************/
 
   string tmp_k = K(4* round_num);
   cout << "K(4* rnd) in hex: " << bin2hex(tmp_k) << endl;
@@ -96,23 +107,28 @@ string G(string w, int round_num)
   cout << "K(4* rnd+1) in hex: " << bin2hex(tmp_k2) << endl;
   cout << "K(4* rnd+1): " << tmp_k2 << endl << endl;
 
+/*******************************************************************
+ * XOR bytes with key
+ * PROBLEM
+ * This part I cant remember the structure for the algorithm
+*******************************************************************/
 
   string temp_x = xOR(g2, tmp_k, 8);
+  string g3 = xOR(g1, get_ftable_hex(temp_x), 8);
 
   cout << "xOR(g2, K(4* rndnum), 8): " << bin2hex(temp_x) << endl;
-  string g3 = xOR(g1, get_ftable_hex(temp_x), 8);
   cout << "g3: " << bin2hex(g3) << endl;
 
   string temp_x2 = xOR(g3, tmp_k2, 8);
+  string g4 = xOR(g2, get_ftable_hex(temp_x2), 8);
 
   cout << "xOR(g3, K(4* rndnum+1), 8): " << bin2hex(temp_x2) << endl;
-  string g4 = xOR(g2, get_ftable_hex(temp_x2), 8);
   cout << "g4: " << bin2hex(g4) << endl;
 
   string temp_x3 = xOR(g4, K((4* round_num) + 2), 8);
+  string g5 = xOR(g3, get_ftable_hex(temp_x3), 8);
 
   cout << "xOR(g4, K(4* rndnum+2), 8): " << bin2hex(temp_x3) << endl;
-  string g5 = xOR(g3, get_ftable_hex(temp_x3), 8);
   cout << "g5: " << bin2hex(g5) << endl;
 
 
@@ -120,7 +136,7 @@ string G(string w, int round_num)
 
 /*******************************************************************
  * get_ftable_hex isnt returning a value
-
+ * PROBLEM
 *******************************************************************/
 
   //string test_ftable_lookup = bin2hex(temp_x);
@@ -136,8 +152,7 @@ string G(string w, int round_num)
 
 /*******************************************************************
  * Encrypt()
-
- * Needs Work
+ * PROBLEM
 *******************************************************************/
 
 void encrypt()
@@ -160,17 +175,20 @@ void encrypt()
 
   plaintext_txt >> str; //contents of plaintext.txt in ASCII
   inFile2 >> key_fromfile; // contents of key.txt
-////
+/*Check afetr converting to binary
+**********************************
   int pTxtLng =  0;
   pTxtLng = str.length();
   if(pTxtLng % 8 != 0)
   {
     cout << "*******This will require padding*******" << endl;
   }
+********************************
+*/
 //  cout << endl << "Length of input string is: " << pTxtLng << endl;
 //  cout << endl << "Plaintext in ascii (str) in : " << str << endl;
 
-//  char2hex(str,str); // Needed when plaintext.txt is in ascii
+//  char0hex(str,str); // Needed when plaintext.txt is in ascii
   string pBin = hex2bin(str);
 
 //  cout << "key_fromfile = " << key_fromfile << endl;
@@ -184,10 +202,10 @@ void encrypt()
   char w1[17] = { };
   char w2[17] = { };
   char w3[17] = { };
+  char l0[17] = { };
+  char l1[17] = { };
   char r0[17] = { };
   char r1[17] = { };
-  char r2[17] = { };
-  char r3[17] = { };
   char k0[17] = { };
   char k1[17] = { };
   char k2[17] = { };
@@ -212,13 +230,17 @@ void encrypt()
 //      hex_whitenedString = bin2hex(str);
 //      cout << "Whitened string in hex: " << hex_whitenedString << endl;
 
+/*******************************************************************
+ * Loads and splits first 64 bits of plaintext binary into l0-r4 registers
+ * l0-r4 contain 2 bytes (16 bits)
+*******************************************************************/
       for(int j = 0; j < 16; j++)
       {
-        r0[j] = str[j];
-        r1[j] = str[j+16];
-        r2[j] = str[j+32];
-        r3[j] = str[j+48];
-//        cout << r0[j] << " " << r1[j] << " " << r2[j] << " " << r3[j] << endl;
+        l0[j] = str[j];
+        l1[j] = str[j+16];
+        r0[j] = str[j+32];
+        r1[j] = str[j+48];
+//        cout << l0[j] << " " << l1[j] << " " << r0[j] << " " << r1[j] << endl;
       }
     }
 
@@ -226,12 +248,19 @@ void encrypt()
 
 
 //  cout << "going into F " << endl;
-//  cout << "r0: " << r0 << endl;
-//  cout << "r1: " << r1 << endl;
+//  cout << "l0: " << l0 << endl;
+//  cout << "l1: " << l1 << endl;
 //  cout << "rnd:" << round_num << endl;
   cout << endl << "Spacer----------------------" << endl;
 
-  F(r0, r1, round_num);
+/*******************************************************************
+ * F called here
+
+ * Half of input block:
+ * l0 = 2 bytes, l1 = 2 bytes
+*******************************************************************/
+
+  F(l0, l1, round_num);
 //  cout << endl << "K" << i << " " << round_num << ": " <<  key_byte << endl;
 //    cout << "str after round " << i << ": " << str << endl;
 //    str = xOR(str, key_fromfile);
@@ -261,7 +290,7 @@ return 0;
 
 /*******************************************************************
  * K function:
- *
+ * Returns 1 byte subkey
 *******************************************************************/
 
 string K(unsigned int x)
@@ -386,7 +415,7 @@ string Generate_Key()
   key_txt_in.open("key.txt");
   key_txt_out.open("key.txt");
 
-  char2hex(result, result);
+  char0hex(result, result);
   cout << "****KEY in HEX is: " << result << '\n';
   key_txt_out << result;
 

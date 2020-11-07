@@ -14,18 +14,6 @@
 
 using namespace std;
 
-//This function was borrowed, but I cant remember where
-void char0hex(const string in, string& out, bool capital = false)
-{
-  out.resize(in.size() *2);
-  const size_t a = capital ? 'A' - 1 : 'a' - 1;
-
-  for(size_t i = 0, c = in[0] & 0xFF; i < out.size(); c = in[i / 2] & 0xFF)
-  {
-    out[i++] = c > 0x9F ? (c/ 16-9) | a : c / 16 | '0';
-    out[i++] = (c & 0xF) > 9 ? (c % 16 - 9) | a : c % 16 | '0';
-  }
-}
 
 string hex2char(string in);
 string bin2hex(string in);
@@ -37,9 +25,10 @@ string xOR(string k, string w, int arrsize);
 string import_fTable ();
 string K(unsigned int x);  // K(x)
 string get_ftable_hex(string hex_in);
-void encrypt();
-unsigned int hex2int(char hex_in);
+void Encrypt();
+void char2hex(const string in, string& out);
 int round_num = 0;
+unsigned int hex2int(char hex_in);
 char key_in[64]; //So that the key can be incremented to k'
 char tmp; // To hold the one element that gets written over on the shift
 static unsigned int f_count = 0; // Count of '0' used to load from key.txt initially, then use updated global val
@@ -86,12 +75,15 @@ string G(string w, int round_num)
     g1[i] = w[i];
     g2[i] = w[i+8];
   }
+
+/***   -->  COUTS  <-- *********************************************
   cout << "In G(): " << endl;
   cout << "w in- 2 bytes of binary, l0 or l1: " << w << endl;
   cout << "g1- Byte 1:     " << g1 << endl;
   cout << "g2 - Byte 2:     " << g2 << endl;
   cout << "g1- Byte 1 in hex:     " << bin2hex(g1) << endl;
   cout << "g2- Byte 2 in hex:     " << bin2hex(g2) << endl << endl;
+*******************************************************************/
 
 
 /*******************************************************************
@@ -100,10 +92,10 @@ string G(string w, int round_num)
 *******************************************************************/
 
   string tmp_k = K(4* round_num);
+  string tmp_k2 = K((4* round_num) + 1);
+
   cout << "K(4* rnd) in hex: " << bin2hex(tmp_k) << endl;
   cout << "K(4* rnd): " << tmp_k << endl;
-
-  string tmp_k2 = K((4* round_num) + 1);
   cout << "K(4* rnd+1) in hex: " << bin2hex(tmp_k2) << endl;
   cout << "K(4* rnd+1): " << tmp_k2 << endl << endl;
 
@@ -118,24 +110,20 @@ string G(string w, int round_num)
 
   string temp_x = xOR(g2, tmp_k, 8);
   string g3 = xOR(g1, get_ftable_hex(temp_x), 8);
-
-  cout << "xOR(g2, K(4* rndnum), 8): " << bin2hex(temp_x) << endl;
-  cout << "g3: " << bin2hex(g3) << endl;
-
   string temp_x2 = xOR(g3, tmp_k2, 8);
   string g4 = xOR(g2, get_ftable_hex(temp_x2), 8);
-
-  cout << "xOR(g3, K(4* rndnum+1), 8): " << bin2hex(temp_x2) << endl;
-  cout << "g4: " << bin2hex(g4) << endl;
-
   string temp_x3 = xOR(g4, K((4* round_num) + 2), 8);
   string g5 = xOR(g3, get_ftable_hex(temp_x3), 8);
 
+/******** -->  COUTS  <-- ******************************************
+  cout << "xOR(g2, K(4* rndnum), 8): " << bin2hex(temp_x) << endl;
+  cout << "g3: " << bin2hex(g3) << endl;
+  cout << "xOR(g3, K(4* rndnum+1), 8): " << bin2hex(temp_x2) << endl;
+  cout << "g4: " << bin2hex(g4) << endl;
   cout << "xOR(g4, K(4* rndnum+2), 8): " << bin2hex(temp_x3) << endl;
   cout << "g5: " << bin2hex(g5) << endl;
-
-
   cout << "ftable input in hex: " << bin2hex(temp_x) << endl;
+*******************************************************************/
 
 /*******************************************************************
  * get_ftable_hex isnt returning a value
@@ -146,9 +134,8 @@ string G(string w, int round_num)
   //string test_ftable_lookup2 = "7a";
   //cout << "get_ftable_hex 7a: " << get_ftable_hex("7a") << endl;
   //cout << "get_ftable_hex (temp_x): " << get_ftable_hex(test_ftable_lookup2) << endl;
-  unsigned int lookup = 0;
 
-  string g5g6 = "HELLO";
+  string g5g6 = "HELLO"; // <------------JUST TO RETURN A STRING. This will be deleted
   return g5g6;
 }
 
@@ -158,7 +145,7 @@ string G(string w, int round_num)
  * PROBLEM
 *******************************************************************/
 
-void encrypt()
+void Encrypt()
 {
   string choice = " ";
 //  string tempS;
@@ -167,6 +154,7 @@ void encrypt()
   string whitened;
   string key_fromfile;
   string ciphertext;
+  int pTxt_Length =  0;
 
 
   ifstream plaintext_txt; // plaintext.txt
@@ -178,27 +166,15 @@ void encrypt()
 
   plaintext_txt >> str; //contents of plaintext.txt in ASCII
   inFile2 >> key_fromfile; // contents of key.txt
-/*Check afetr converting to binary
-**********************************
-  int pTxtLng =  0;
-  pTxtLng = str.length();
-  if(pTxtLng % 8 != 0)
+//  char2hex(str,str); // Needed when plaintext.txt is in ascii
+  string pBin = hex2bin(str);
+  string kBin = hex2bin(key_fromfile);
+
+  pTxt_Length = str.length();
+  if(pTxt_Length % 64 != 0)
   {
     cout << "*******This will require padding*******" << endl;
   }
-********************************
-*/
-//  cout << endl << "Length of input string is: " << pTxtLng << endl;
-//  cout << endl << "Plaintext in ascii (str) in : " << str << endl;
-
-//  char0hex(str,str); // Needed when plaintext.txt is in ascii
-  string pBin = hex2bin(str);
-
-//  cout << "key_fromfile = " << key_fromfile << endl;
-//  cout << "hex2bin(str)      = " << pBin << endl;
-
-  string kBin = hex2bin(key_fromfile);
-//  cout << "kBin              = " << kBin << endl;
 
   string r = str;
   char w0[17] = { };
@@ -215,27 +191,18 @@ void encrypt()
   char k3[17] = { };
   unsigned int n = 0;
   n = round_num;
-//-------------------------------------------------------------
-//str is input string in hex
-//key is input in hex
-//  string key_byte = K(n);
-//  cout << endl << "K2 0: " <<  key_byte << endl;
-//  string key_byte1 = K(n+1);
-//  cout << "K2 1: " <<  key_byte1 << endl;
-//---------------------------------------------------------------
+
+
   for(int i = 0; i < 1; i++) // START 16 rounds <-- ********SET ROUNDS HERE ********************************
   {
 
     if(round_num == 0)
     {
       str = Whiten(pBin, kBin); // 64bits (8 words*8 bits each)XORD P+K=R in string
-//      cout << endl << "Whitened 64 bit string: " << endl << str << endl;
-//      hex_whitenedString = bin2hex(str);
-//      cout << "Whitened string in hex: " << hex_whitenedString << endl;
 
 /*******************************************************************
- * Loads and splits first 64 bits of plaintext binary into l0-r4 registers
- * l0-r4 contain 2 bytes (16 bits)
+ * Loads and splits first 64 bits of plaintext binary into 4 arrays
+ * l0-r1 each contain 2 bytes (16 bits)
 *******************************************************************/
       for(int j = 0; j < 16; j++)
       {
@@ -243,38 +210,17 @@ void encrypt()
         l1[j] = str[j+16];
         r0[j] = str[j+32];
         r1[j] = str[j+48];
-//        cout << l0[j] << " " << l1[j] << " " << r0[j] << " " << r1[j] << endl;
       }
     }
 
-  cout << "Spacer----------------------" << endl;
-  cout << endl << endl << "Key out put: " << K(i) << endl;
-
-
-//  cout << "going into F " << endl;
-//  cout << "l0: " << l0 << endl;
-//  cout << "l1: " << l1 << endl;
-//  cout << "rnd:" << round_num << endl;
-
-/*******************************************************************
- * F called here
-
- * Half of input block:
- * l0 = 2 bytes, l1 = 2 bytes
-*******************************************************************/
-
   F(l0, l1, round_num);
-//  cout << endl << "K" << i << " " << round_num << ": " <<  key_byte << endl;
-//    cout << "str after round " << i << ": " << str << endl;
-//    str = xOR(str, key_fromfile);
-//    cout << "str after round 0: " << str << endl;
-    round_num++;
+
+  round_num++;
   }
-//  outFile << whitened; //
+  outFile << whitened; //
   plaintext_txt.close();
   inFile2.close();
   outFile.close();
-
 }
 
 
@@ -284,8 +230,8 @@ void encrypt()
 
 int main()
 {
-
-  encrypt();
+  Generate_Key();
+  Encrypt();
 
 cout << endl;
 return 0;
@@ -301,8 +247,10 @@ string K(unsigned int x)
   unsigned int new_x = x % 8;
   char out[9]= { };
 
+
   if(f_count == 0)
   {
+    // Get key from key.txt
     ifstream inFile;
     inFile.open("key.txt");
     string kHex = "";
@@ -416,9 +364,10 @@ string Generate_Key()
   ifstream key_txt_in;
   ofstream key_txt_out;
   key_txt_in.open("key.txt");
-  key_txt_out.open("key.txt");
+//  key_txt_out.open("key.txt");
+  key_txt_out.open("Gen_Key.txt");
 
-  char0hex(result, result);
+  char2hex(result, result);
   cout << "****KEY in HEX is: " << result << '\n';
   key_txt_out << result;
 
@@ -509,14 +458,14 @@ string get_ftable_hex(string hex_in)
   temp[1] = fTable[((irow*32) + (2* icolumn)) + 1];
   string result(temp);
 
-/* COUTS <----------------------------*/
+/*****     -->  COUTS  <---   ***********
   cout << "irow: " << irow << endl;
   cout << "icolumn: " << icolumn << endl;
   //cout << "fTable" << fTable << endl;
   cout << "temp[0]: " << temp[0] << endl;
   cout << "temp[1]: " << temp[1] << endl;
   cout << "result: " << result << endl;
-
+*****************************************/
 
   return result;
 }
@@ -528,6 +477,7 @@ string get_ftable_hex(string hex_in)
  * hex2bin
  * bin2hex
  * hex2int
+ * char2hex
 *******************************************************/
 
 string hex2char(string in)
@@ -770,3 +720,16 @@ unsigned int hex2int(char hex_in)
   return num_out;
 }
 
+//This function was borrowed
+void char2hex(const string in, string& out)
+{
+  bool capital = false;
+  out.resize(in.size() *2);
+  const size_t a = capital ? 'A' - 1 : 'a' - 1;
+
+  for(size_t i = 0, c = in[0] & 0xFF; i < out.size(); c = in[i / 2] & 0xFF)
+  {
+    out[i++] = c > 0x9F ? (c/ 16-9) | a : c / 16 | '0';
+    out[i++] = (c & 0xF) > 9 ? (c % 16 - 9) | a : c % 16 | '0';
+  }
+}
